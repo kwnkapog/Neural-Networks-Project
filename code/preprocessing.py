@@ -6,74 +6,64 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
 
 
-# load the dataset into a pandas dataframe, using tab as a delimiter.
+# Load the dataset into a pandas dataframe.
 df = pd.read_csv('iphi2802.csv', delimiter='\t')
-df1 = df
 
-# check for any missing or undefined values from the first row
-null_values = df.iloc[:,0].isnull()
-print(df[null_values])
+# Print the original shape of the dataset
+print(f"Original shape of Dataset: {df.shape}")
 
-missing_values = df.iloc[:,0].isna()
-print(df[missing_values])
+# Print information about the dataset
+print(f'\nDataset Information:')
+df.info()
 
-df.describe()
+# Print the number of NULL values in each column
+print(f'\nNumber of NULL values per column:')
+print(df.isnull().sum())
 
-#create a list of the different inscriptions and import list of stopwords from nltk
-inscriptions = df['text'].to_list()
-stopwords = nltk.corpus.stopwords.words('greek')
+# Print the number of unique values in each column
+print(f'\nNumber of unique values per column:')
+print(df.nunique())
 
-# build the tf-idf vectorizer, using a stopword list from the nltk library and 1000 words  
+# Create a new column 'mean_date' in the dataframe, which is the mean of the two dates  
+df['mean_date'] = df[['date_min', 'date_max']].mean(axis=1)
+
+
+# Iitializing the tf-idf vectorizer, using a stopword list from the nltk library and and transform the 'text' column into a TF-IDF matrix of 1000 columns
+stopwords = nltk.corpus.stopwords.words('greek') 
 vectorizer = TfidfVectorizer(stop_words=stopwords, max_features=1000)
-index_matrix = vectorizer.fit_transform(inscriptions)
+index_matrix = vectorizer.fit_transform(df['text'].to_list())
 
-#visualize the output of the vectorizer(words and their idf values)
+# Visualize the output of the vectorizer(words and their idf values)
 shape = index_matrix.shape
 idf_values = vectorizer.idf_
 vocab = sorted(vectorizer.vocabulary_)
 
-# transform the input/output martices for normalization
+# Convert the input/target martices for normalization
 texts = index_matrix.toarray()
-dates = df1[['date_min', 'date_max']].values
+dates = df['mean_date'].values.reshape(-1,1)
 
-# put the transformed text into the dataframe
-df1['text'] = [row for row in texts]
+# Initialize a MinMaxScaler and scale both the TF-IDF matrix (input) and the mean_dates (output) column
+scaler = MinMaxScaler()
+X = scaler.fit_transform(texts)
+y = scaler.fit_transform(dates)
 
-# normalize the input and output sets:
-#   text(tf-idf values)->[0,1]
-#   date_min,date_max ->[0,1] 
-input_scaler = MinMaxScaler()
-X = input_scaler.fit_transform(texts)
+# Initialize 5-Fold Cross Validation, create dictionary of each fold, store all dictionaries to fold_dataset list
+fold_dataset = []
 
-target_scaler = MinMaxScaler()
-y = target_scaler.fit_transform(dates)
-
-
-# initialize 5-Fold Cross Validation, store to a list all the folds.
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
-fold_dataset = []
-# take fold, train and test indexes starting the fold index from 1
 for fold_index, (train_index, test_index) in enumerate(kf.split(X), 1):
     
     # split data to train/test sets
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
     
-    #calculate mean values for both target sets
-    y_train_mean = np.mean(y_train, axis=1)
-    y_test_mean = np.mean(y_test, axis=1)
-    
     # Store the training and test datasets along with fold index
     fold_data = {
         "fold_index": fold_index,
         "X_train": X_train,
         "y_train": y_train,
-        "y_train_mean": y_train_mean,
         "X_test": X_test,
         "y_test": y_test,
-        "y_test_mean": y_test_mean
     }
     fold_dataset.append(fold_data)
-
-

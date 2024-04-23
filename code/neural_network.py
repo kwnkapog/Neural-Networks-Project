@@ -68,24 +68,30 @@ def evaluate_model(model,x_test,y_test):
     loss = model.evaluate(x_test,y_test)
     return loss
 
-
-
-
-
 # Testing the network
+test_losses = []
+training_losses = []
 
-model = set_model(125,0.001)
+#setup network, print architecture
+model = set_model(300,0.001)
+model.summary()
 
 for fold_data in pr.fold_dataset:
     x_training = fold_data["X_train"]
-    y_training = fold_data["y_train_mean"]
+    y_training = fold_data["y_train"]
     x_testing = fold_data["X_test"]
-    y_testing = fold_data["y_test_mean"]
+    y_testing = fold_data["y_test"]
     indx= fold_data["fold_index"]
     print(f"Fold {indx}:")
     
     history = fit_model(model, x_training, y_training, batch=32, epoch=50)
-    results = evaluate_model(model, x_testing, y_testing)
-    print("test loss:", results)
-    
+    training_losses.append(history.history['loss'])
+    result = evaluate_model(model, x_testing, y_testing)
+    print("test loss:", result)
+    test_losses.append(result)
+
+mean_training_losses = np.mean(training_losses, axis=0)
+
+
+   
     
