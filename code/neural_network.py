@@ -4,10 +4,11 @@ import keras
 from keras import layers
 import keras.backend as K
 import numpy as np
+import matplotlib.pyplot as plt 
 
 def custom_RMSE(y_true, y_pred):
     """
-    Custom loss function for a tensorflow keras model, that computes the root of the Mean Square Error between the predicted values from the neural network and the target values.
+    Calculate the root mean square error between predictions and true values.
 
     Parameters:
     y_true (nparray or tensor): The target values for the training.
@@ -29,11 +30,11 @@ def set_model(num_of_nodes_per_layer, learning_rate):
     Construct and compile a custom neural network that performs a linear regression task of fixed input and output nodes, based on the number of nodes per hidden level and the number of hidden levels.
 
     Parameters:
-    num_of_nodes_per_layer (int or list): Builds a single hidden layer if type of integer, or len(num_of_nodes_per_layer) if type of list, with num_of_nodes_per_layer[i] = #nodes in hidden layer i.
-    learning_rate (float): Adjusts the learning rate of the Adam optimizer.
+    num_of_nodes_per_layer (int or list): Builds the hidden layers of the model, 1 for int, # values in the list
+    learning_rate (float): Specifies the learning rate of the Adam optimizer.
 
     Returns:
-    model (Instance of Sequencial class): Returns the constructed and compiled model of the neural network, tuned by the hyperparameters defined in the input.
+    Model (Instance of Sequencial class): Returns the constructed model of the neural network.
     
     """
     model = keras.Sequential()
@@ -56,42 +57,106 @@ def set_model(num_of_nodes_per_layer, learning_rate):
     
 
 def fit_model(model, x_train, y_train, batch, epoch):
-    fitting = model.fit(
+    """
+    Train the given model for a particular given dataset(x_train, y_train), over specified epochs and batches .
+
+    Parameters:
+    model (Model Object): The specified model 
+    x_train (array): The training data.
+    y_train (array): The training labels.
+    batch (int): The size of the batch.
+    epoch (int): The number of epochs.
+
+    Returns:
+    History: Contains the training loss values per epoch. 
+    
+    """
+    history = model.fit(
     x_train,
     y_train,
     batch_size=batch,
     epochs=epoch,
     )
-    return fitting
+    return history
 
 def evaluate_model(model,x_test,y_test):
+    """
+    Evaluate the given model for a particular given dataset(x_test, y_test).
+
+    Parameters:
+    model (Model Object): The specified model. 
+    x_test (array): The testing data.
+    y_test (array): The testing labels.
+
+    Returns:
+    A testing loss value as well as metrics values if specified. 
+    
+    """
     loss = model.evaluate(x_test,y_test)
     return loss
 
-# Testing the network
-test_losses = []
-training_losses = []
 
-#setup network, print architecture
-model = set_model(300,0.001)
-model.summary()
+def train_model(nodes_per_layer, learning_rate, print_summary, dataset, batch_sizes, epochs):
+    """
+    Builds, trains and evaluates a model on a dataset based on the parameters given.
 
-for fold_data in pr.fold_dataset:
-    x_training = fold_data["X_train"]
-    y_training = fold_data["y_train"]
-    x_testing = fold_data["X_test"]
-    y_testing = fold_data["y_test"]
-    indx= fold_data["fold_index"]
-    print(f"Fold {indx}:")
+    Parameters:
+    nodes_per_layer (int or list): Builds the hidden layers of the model, 1 for int, # values in the list. 
+    learning_rate (float): Specifies learning rate.
+    print_summary (boolean): Set to True to view the architecture of the model.
+    batch_sizes (int): The size of the batches
+    epochs (int): The number of epochs
     
-    history = fit_model(model, x_training, y_training, batch=32, epoch=50)
-    training_losses.append(history.history['loss'])
-    result = evaluate_model(model, x_testing, y_testing)
-    print("test loss:", result)
-    test_losses.append(result)
-
-mean_training_losses = np.mean(training_losses, axis=0)
-
-
-   
+    Returns:
+    tuple: A list of the training losses per epoch per fold, a list of testing losses per fold and the mean training losses over the folds, for every epoch . 
     
+    """
+    test_losses = []
+    training_losses = []
+    
+    model = set_model(nodes_per_layer,learning_rate)
+    
+    if print_summary:
+        model.summary()
+        
+    for data in dataset:
+        x_training = data["X_train"]
+        y_training = data["y_train"]
+        x_testing = data["X_test"]
+        y_testing = data["y_test"]
+        indx = data["fold_index"]
+        print(f"Fold {indx}:") 
+        history = fit_model(model, x_training, y_training, batch=batch_sizes, epoch=epochs)
+        training_losses.append(history.history['loss'])
+        result = evaluate_model(model, x_testing, y_testing)
+        test_losses.append(result)
+    # Mean value of loss for every epoch
+    mean_training_losses = np.mean(training_losses, axis=0) 
+    
+    return training_losses, test_losses, mean_training_losses   
+
+# Test the network
+# tr_loss, ts_loss, mean_tr_loss = train_model(125, 0.001, True, pr.fold_dataset, 32, 10) 
+
+def plot_loss_over_epoch(mean_tr_loss):
+    """
+    Plots the mean loss from all the folds for each of the training epochs.
+
+    Parameters:
+    mean_train_loss (list): the mean training loss per epoch of the particular model. 
+    
+    Returns:
+    The diagram.
+    
+    """
+    plt.figure(figsize=(12, 4))
+    plt.subplot(1, 2, 1)
+
+    # Plot the training loss over epochs, with the label 'Train Loss'
+    plt.plot(mean_tr_loss, label='Train Loss')
+
+    # Create a legend for the plot
+    plt.legend()
+
+    # Set the title of the plot to 'Loss Over Epochs'
+    plt.title('Loss Over Epochs')
