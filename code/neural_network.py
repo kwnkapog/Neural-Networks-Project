@@ -38,7 +38,7 @@ def set_model(num_of_nodes_per_layer, learning_rate):
     
     """
     model = keras.Sequential()
-    model.add(keras.Input(shape=(1000,)))
+    model.add(keras.Input(shape=(8000,)))
     if isinstance(num_of_nodes_per_layer, int):
         model.add(layers.Dense(num_of_nodes_per_layer, activation="relu"))
     elif isinstance(num_of_nodes_per_layer, list):
@@ -160,3 +160,24 @@ def plot_loss_over_epoch(mean_tr_loss):
 
     # Set the title of the plot to 'Loss Over Epochs'
     plt.title('Loss Over Epochs')
+
+mean_train_losses = []
+tr_loss1, ts_loss1, mean_tr_loss1 = train_model(1000, 0.001, True, pr.fold_dataset, 32, 50)
+mean_train_losses.append(mean_tr_loss1)
+tr_loss2, ts_loss2, mean_tr_loss2 = train_model(2000, 0.001, True, pr.fold_dataset, 32, 50)
+mean_train_losses.append(mean_tr_loss2)
+tr_loss3, ts_loss3, mean_tr_loss3 = train_model(3000, 0.001, True, pr.fold_dataset, 32, 50)
+mean_train_losses.append(mean_tr_loss3)
+
+plt.figure(figsize=(12, 4))
+ 
+for i,loss in enumerate(mean_train_losses):
+    plt.plot(loss, label='Mean Train Loss Network {}'.format(i+1))
+
+plt.legend()
+
+plt.title('Mean Loss Over Epochs')
+
+mean_test_loss1 = np.mean(ts_loss1)
+mean_test_loss2 = np.mean(ts_loss2)
+mean_test_loss3 = np.mean(ts_loss3)

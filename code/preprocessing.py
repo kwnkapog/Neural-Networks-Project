@@ -30,7 +30,7 @@ df['mean_date'] = df[['date_min', 'date_max']].mean(axis=1)
 
 # Iitializing the tf-idf vectorizer, using a stopword list from the nltk library and and transform the 'text' column into a TF-IDF matrix of 1000 columns
 stopwords = nltk.corpus.stopwords.words('greek') 
-vectorizer = TfidfVectorizer(stop_words=stopwords, max_features=1000)
+vectorizer = TfidfVectorizer(stop_words=stopwords, max_features=8000)
 index_matrix = vectorizer.fit_transform(df['text'].to_list())
 
 # Visualize the output of the vectorizer(words and their idf values)
