@@ -164,10 +164,12 @@ def plot_loss_over_epoch(mean_tr_loss):
 mean_train_losses = []
 tr_loss1, ts_loss1, mean_tr_loss1 = train_model(1000, 0.001, True, pr.fold_dataset, 32, 50)
 mean_train_losses.append(mean_tr_loss1)
-tr_loss2, ts_loss2, mean_tr_loss2 = train_model(2000, 0.001, True, pr.fold_dataset, 32, 50)
+tr_loss2, ts_loss2, mean_tr_loss2 = train_model(750, 0.001, True, pr.fold_dataset, 32, 50)
 mean_train_losses.append(mean_tr_loss2)
-tr_loss3, ts_loss3, mean_tr_loss3 = train_model(3000, 0.001, True, pr.fold_dataset, 32, 50)
+tr_loss3, ts_loss3, mean_tr_loss3 = train_model(500, 0.001, True, pr.fold_dataset, 32, 50)
 mean_train_losses.append(mean_tr_loss3)
+tr_loss4, ts_loss4, mean_tr_loss4 = train_model(250, 0.001, True, pr.fold_dataset, 32, 50)
+mean_train_losses.append(mean_tr_loss4)
 
 plt.figure(figsize=(12, 4))
  
@@ -181,3 +183,36 @@ plt.title('Mean Loss Over Epochs')
 mean_test_loss1 = np.mean(ts_loss1)
 mean_test_loss2 = np.mean(ts_loss2)
 mean_test_loss3 = np.mean(ts_loss3)
+mean_test_loss4 = np.mean(ts_loss4)
+
+plt.figure(figsize=(12, 4))
+plt.plot(ts_loss1, label='Test Loss Network 1')
+plt.plot(ts_loss2, label='Test Loss Network 2')
+plt.plot(ts_loss3, label='Test Loss Network 3')
+plt.plot(ts_loss4, label='Test Loss Network 4')
+plt.legend()
+plt.title('Train Loss Over Folds per Model')
+
+mean_loss_ml = []
+
+tr_loss_ml_1, ts_loss_ml_1, mean_tr_loss_ml_1 = train_model([500,100], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_1)
+tr_loss_ml_2, ts_loss_ml_2, mean_tr_loss_ml_2 = train_model([500,200], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_2)
+tr_loss_ml_3, ts_loss_ml_3, mean_tr_loss_ml_3 = train_model([500,300], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_3)
+tr_loss_ml_4, ts_loss_ml_4, mean_tr_loss_ml_4 = train_model([1000,100], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_4)
+tr_loss_ml_5, ts_loss_ml_5, mean_tr_loss_ml_5 = train_model([1000,200], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_5)
+tr_loss_ml_6, ts_loss_ml_6, mean_tr_loss_ml_6 = train_model([1000,300], 0.001, True, pr.fold_dataset, 32, 50)
+mean_loss_ml.append(mean_tr_loss_ml_6)
+
+plt.figure(figsize=(12, 4))
+ 
+for i,loss in enumerate(mean_loss_ml):
+    plt.plot(loss, label='Mean Train Loss Multilayered Network {}'.format(i+1))
+
+plt.legend()
+
+plt.title('Mean Loss Over Epochs')
