@@ -1,10 +1,10 @@
-import preprocessing as pr
 import tensorflow as tf
 import keras
 from keras import layers
 import keras.backend as K
 import keras.callbacks as cb
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 import matplotlib.pyplot as plt 
 
 def custom_RMSE(y_true, y_pred):
@@ -26,12 +26,13 @@ def custom_RMSE(y_true, y_pred):
     """
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
 
-def set_model(num_of_nodes_per_layer, learning_rate, momentum):
+def set_model(num_of_nodes_input_layer, num_of_nodes_per_layer, learning_rate, momentum):
     """
     Construct and compile a custom neural network that performs a linear regression task of fixed input and output nodes, based on the number of nodes per hidden level and the number of hidden levels.
 
     Parameters:
-    num_of_nodes_per_layer (int or list): Builds the hidden layers of the model, 1 for int, # values in the list
+    num_of_nodes_input_layer (int): The number of nodes in the input layer of the model.
+    num_of_nodes_per_layer (int or list): Builds the hidden layers of the model, 1 hidden layer for an int, or as many as the size of the list.
     learning_rate (float): Specifies the learning rate of the Adam optimizer.
     momentum (float): Specifies the momentum of the Adam optimizer.
 
@@ -41,7 +42,7 @@ def set_model(num_of_nodes_per_layer, learning_rate, momentum):
     """
     model = keras.Sequential()
     
-    model.add(keras.Input(shape=(8000,)))
+    model.add(keras.Input(shape=(num_of_nodes_input_layer,)))
     
     if isinstance(num_of_nodes_per_layer, int):
         model.add(layers.Dense(num_of_nodes_per_layer, activation="relu"))
@@ -59,11 +60,12 @@ def set_model(num_of_nodes_per_layer, learning_rate, momentum):
     )
     return model       
 
-def set_model_with_dropout(num_of_nodes_per_layer, learning_rate, momentum,dropout_rate_in, dropout_rate_h):
+def set_model_with_dropout(num_of_nodes_input_layer, num_of_nodes_per_layer, learning_rate, momentum,dropout_rate_in, dropout_rate_h):
     """
     Construct and compile a custom neural network that performs a linear regression task of fixed input and output nodes, based on the number of nodes per hidden level and the number of hidden levels, using the technique of dropout.
 
     Parameters:
+    num_of_nodes_input_layer (int): The number of nodes in the hidden layer of the model.
     num_of_nodes_per_layer (int or list): Builds the hidden layers of the model, 1 for int, # values in the list
     learning_rate (float): Specifies the learning rate of the Adam optimizer.
     momentum (float): Specifies the momentum of the Adam optimizer.
@@ -76,7 +78,7 @@ def set_model_with_dropout(num_of_nodes_per_layer, learning_rate, momentum,dropo
     """
     model = keras.Sequential()
     
-    model.add(keras.Input(shape=(8000,)))
+    model.add(keras.Input(shape=(num_of_nodes_input_layer,)))
     model.add(layers.Dropout(dropout_rate_in))
     
     if isinstance(num_of_nodes_per_layer, int):
@@ -226,4 +228,38 @@ def mean_of_all(data):
         means.append(mean)  
     overall_mean = sum(means) / len(means)
     return overall_mean
+
+def print_info_df(df):
+    """
+    Prints various useful information about a dataframe.
+
+    Parameters:
+    df (pandas Dataframe): The dataframe.
+    
+    """
+    print(f"Original shape of Dataset: {df.shape}\n")
+    print(f"\nNumber of NULL values per column:{df.isnull().sum()}\n")
+    print(f"\nNumber of unique values per column:{df.nunique()}\n")
+ 
+def vectorize_inscriptions(df, stopwords, max_features):
+    """
+    Uses the Tf-Idf Vectorizer, in order to convert a particular column of a dataframe to vectors, using the BoW model.
+
+    Parameters:
+    df (pandas Dataframe): The Dataframe. 
+    stopwords (list): A list conatinig ancient greek stopwords.
+    max_features (int): The max number of features to be selected by the vectorizer, based on their idf values.
+
+    Returns:
+    A numpy array containing the vectorized inscriptions. 
+    
+    """
+    vectorizer = TfidfVectorizer(stop_words=stopwords, max_features=max_features)
+    
+    if 'text' in df.columns:
+        index_matrix = vectorizer.fit_transform(df['text'].to_list())
+        print(f"The shape of the matrix is: {index_matrix.shape} \n")
+        print(f"The vocabulary created from the vectorizer is the following \n {sorted(vectorizer.vocabulary_)}")
+        return index_matrix.toarray()    
+    else: print("The dataframe provided does not have the specific column needed.")
 

@@ -4,25 +4,13 @@ import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
+import utils as ul
 
 
 # Load the dataset into a pandas dataframe.
 df = pd.read_csv('iphi2802.csv', delimiter='\t')
 
-# Print the original shape of the dataset
-print(f"Original shape of Dataset: {df.shape}")
-
-# Print information about the dataset
-print(f'\nDataset Information:')
-df.info()
-
-# Print the number of NULL values in each column
-print(f'\nNumber of NULL values per column:')
-print(df.isnull().sum())
-
-# Print the number of unique values in each column
-print(f'\nNumber of unique values per column:')
-print(df.nunique())
+ul.print_info_df(df)
 
 # Create a new column 'mean_date' in the dataframe, which is the mean of the two dates  
 df['mean_date'] = df[['date_min', 'date_max']].mean(axis=1)
