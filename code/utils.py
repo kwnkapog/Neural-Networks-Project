@@ -5,6 +5,7 @@ import keras.backend as K
 import keras.callbacks as cb
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import KFold 
 import matplotlib.pyplot as plt 
 
 def custom_RMSE(y_true, y_pred):
@@ -263,3 +264,36 @@ def vectorize_inscriptions(df, stopwords, max_features):
         return index_matrix.toarray()    
     else: print("The dataframe provided does not have the specific column needed.")
 
+def split_to_folds(num_of_folds, X, y):
+    """
+    Splits the dataset into k different folds of training and testing data.
+
+    Parameters:
+    num_of_folds (int): The number of different folds. 
+    
+
+    Returns:
+    A a list of dictionaries, each one being one fold. 
+    
+    """
+    fold_dataset = []
+
+    kf = KFold(n_splits= num_of_folds, shuffle=True, random_state=42)
+
+    for fold_index, (train_index, test_index) in enumerate(kf.split(X), 1):
+    
+        # split data to train/test sets
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+    
+        # Store the training and test datasets along with fold index
+        fold_data = {
+            "fold_index": fold_index,
+            "X_train": X_train,
+            "y_train": y_train,
+            "X_test": X_test,
+            "y_test": y_test,
+        }
+        fold_dataset.append(fold_data)
+    
+    return fold_dataset
