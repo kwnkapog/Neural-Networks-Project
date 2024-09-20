@@ -171,11 +171,12 @@ def evaluate_model(model,x_test,y_test):
     return loss
 
 
-def train_model( nodes_per_layer, learning_rate, momentum, dataset, batch_sizes, epochs, have_callback , dropout, dropout_in, dropout_h):
+def train_model( num_of_nodes_input_layer,nodes_per_layer, learning_rate, momentum, dataset, batch_sizes, epochs, have_callback , dropout, dropout_in, dropout_h):
     """
     Builds, trains and evaluates a model on a dataset based on the parameters given.
 
     Parameters:
+    num_of_nodes_input_layer (int): the number of nodes in the input layer of the model.
     nodes_per_layer (int or list): Builds the hidden layers of the model, 1 for int, # values in the list. 
     learning_rate (float): Specifies learning rate of the optimizer.
     momentum (float): Specifies the momentum of the optimizer.
@@ -204,15 +205,17 @@ def train_model( nodes_per_layer, learning_rate, momentum, dataset, batch_sizes,
         print(f"Fold {indx}:") 
         
         if dropout:
-            model = set_model_with_dropout(nodes_per_layer, learning_rate, momentum, dropout_in, dropout_h)
+            model = set_model_with_dropout(num_of_nodes_input_layer,nodes_per_layer, learning_rate, momentum, dropout_in, dropout_h)
         else:
-            model = set_model(nodes_per_layer,learning_rate, momentum)
+            model = set_model(num_of_nodes_input_layer,nodes_per_layer,learning_rate, momentum)
         if have_callback:
             history = fit_model_with_stopping(model, x_training, y_training, x_testing, y_testing, batch=batch_sizes, epoch=epochs, callback = callback)
         else:
             history = fit_model(model, x_training, y_training, x_testing, y_testing, batch=batch_sizes, epoch=epochs)
+        
         training_losses.append(history.history['loss'])
         test_losses.append(history.history['val_loss'])
+        
     if have_callback:
         return training_losses, test_losses 
     else:
@@ -260,7 +263,7 @@ def vectorize_inscriptions(df, stopwords, max_features):
     if 'text' in df.columns:
         index_matrix = vectorizer.fit_transform(df['text'].to_list())
         print(f"The shape of the matrix is: {index_matrix.shape} \n")
-        print(f"The vocabulary created from the vectorizer is the following \n {sorted(vectorizer.vocabulary_)}")
+        # print(f"The vocabulary created from the vectorizer is the following \n {sorted(vectorizer.vocabulary_)}")
         return index_matrix.toarray()    
     else: print("The dataframe provided does not have the specific column needed.")
 
@@ -270,6 +273,8 @@ def split_to_folds(num_of_folds, X, y):
 
     Parameters:
     num_of_folds (int): The number of different folds. 
+    X ():
+    y ():
     
 
     Returns:
