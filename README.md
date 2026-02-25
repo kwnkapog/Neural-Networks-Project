@@ -88,10 +88,4 @@ pip install tensorflow keras scikit-learn pandas numpy nltk matplotlib
    - Evaluate performance across folds
    - Visualize training results
 
-## 📄 License
 
-This project was created as part of a Computational Intelligence course.
-
----
-
-*Author: Konstantinos*
